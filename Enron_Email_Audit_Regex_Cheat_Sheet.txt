@@ -1,0 +1,183 @@
+Message-ID: <25828831.1075855376669.JavaMail.evans@thyme> Date: Mon, 26 Nov 2001 07:25:16 -0800 (PST) From: k..allen@enron.com To: jsmith@austintx.com Subject: RE: Additional properties in San Antonio Jeff, Can you resend the info on the three properties you mailed and the one you faxed on Tuesday. I was out of the office last week. Phillip -----Original Message----- From: "JEFF SMITH" <jsmith@austintx.com>@ENRON Sent: Tuesday, November 20, 2001 3:43 PM To: Allen, Phillip K. Subject: Additional properties in San Antonio Phillip, I am waiting to get info. on two more properties in San Antonio. The broker will be faxing info. on Monday. One is 74 units for $1,900,000, and the other is 24 units for $550,000. Also, I have mailed you info. on three other properties in addition to the 100 unit property that I faxed this AM. Let me know if you have any questions. Jeff Smith The Smith Company 9400 Circle Drive Austin, TX 78736 512-394-0908 office 512-394-0913 fax 512-751-9728 mobile jsmith@austintx.com
+
+======================================================================
+ACCTG 522 — REGEX DEMO CHEAT SHEET
+======================================================================
+The text above is the exact EmailData value of the first CSV data record
+(RecordID 1), read with a CSV reader. CSV quoting has been parsed; the
+email text itself has not been cleaned or changed.
+
+SETUP FOR REGEX101.COM
+Site/reference: https://regex101.com/
+Choose the Python flavor and Match mode. Paste ONLY the email above
+into Test String, then paste one pattern below into Regular Expression.
+Do not paste headings, slash delimiters, or Python r'...' wrappers.
+Use all/global matches (g) when available. Enable case-insensitive (i)
+for searches 1, 2, and 9–14. Metadata demos 3–8 use exact label case.
+The patterns below use (?s) where dot must also match line breaks.
+Keep multiline (m) off; this is one flattened email, not line-based data.
+
+DATA HANDLING: This file includes real email text. Use the real record on
+an external website only if your data-use rules permit it. Do not save,
+share, or publish a regex101 workspace containing the real email. The
+synthetic text at the end is an alternative for an online demonstration.
+No email has been uploaded to regex101 as part of creating this file.
+
+Suggested sequence: predict → run → inspect highlighted matches/groups
+→ change one token → explain what changed. A zero-match result is useful:
+the first real email does not contain every type of evidence below.
+
+1. LITERAL KEYWORD
+properties
+Find a literal word fragment. Try property instead: why can it miss the
+plural? Case-insensitive matching also finds Properties.
+
+2. WORD BOUNDARIES AND ALTERNATIVES
+\b(?:office|fax|mobile)\b
+Find these whole words in the first email's business signature.
+Compare with office|fax|mobile. Boundaries reduce fragment matches.
+Every highlighted span is an occurrence; all spans here belong to ONE
+email record. A signature hit is not evidence of a policy violation.
+
+3. MESSAGE ID
+\AMessage-ID:\s*(?P<MessageID><[^>]+>)
+\A anchors the beginning of the entire input. The named group captures
+the supplied identifier, including angle brackets. [^>] means not >.
+
+4. HEADER / BODY SPLIT WITH EXACT RECONSTRUCTION
+(?s)\A(?P<EmailHeader>Message-ID:.*?\sDate:.*?\sFrom:.*?\sTo:.*?\s)(?P<EmailBody>Subject:.*)\Z
+Inspect the two named groups. Their concatenation equals the original.
+The first outer Subject: label starts EmailBody under this CASE convention.
+Subject is normally a header field, but flattening prevents reliable
+separation of subject text from newly written message text here.
+.*? is lazy: it stops as soon as the next ordered label can match.
+
+5. ALL OUTER METADATA, SAFELY BOUNDED BEFORE THE BODY
+(?s)\AMessage-ID:\s*(?P<MessageID><[^>]+>)\s+Date:\s*(?P<DateRaw>.*?)\s+From:\s*(?P<FromRaw>.*?)\s+To:\s*(?P<ToRaw>.*?)\s+(?=Subject:)
+This matches only the header prefix, stopping before Subject:.
+(?=Subject:) checks the next characters without consuming them.
+Named groups preserve raw fields. Forwarded From:/To:/Date: labels later
+in the body do not supply these outer metadata values. The notebook
+first splits the header, then extracts metadata exclusively from it.
+
+6. OUTER DATE ONLY
+(?s)\AMessage-ID:.*?\sDate:\s*(?P<DateRaw>.*?)\sFrom:
+Capture the date as text; regex is not calendar validation. Python's
+email.utils.parsedate_to_datetime will interpret the numeric offset.
+Local sending hour and UTC ordering are distinct concepts.
+
+7. OUTER SENDER ONLY — INCLUDING A DISPLAY NAME
+(?s)\AMessage-ID:.*?\sDate:.*?\sFrom:\s*(?P<FromRaw>.*?)\sTo:
+Try the synthetic example below. FromRaw should include
+legal <.taylor@enron.com>, not the forwarded sender.
+
+8. ADDRESS EXTRACTION — USE ON CAPTURED FromRaw OR ToRaw
+[^\s<>;,]+@[^\s<>;,]+
+Copy a raw field into Test String to demonstrate this second step.
+It preserves unusual supplied spellings such as .taylor@enron.com.
+This is lightweight extraction, not full email-address validation.
+Applied to the entire email, it ALSO finds addresses in quoted threads,
+signatures, and the Message-ID; those are not necessarily outer senders.
+
+9. WORKED PHONE / ILLUSTRATIVE PII SCREEN
+(?<!\w)(?:\+?1[ .-]?)?(?:\(\d{3}\)|\d{3})[ .-]\d{3}[ .-]\d{4}(?!\d)
+Find common North American phone formats. The first email includes office,
+fax, and mobile signature numbers. The original PII policy was not supplied;
+phone numbers are an illustrative teaching category, not automatic violations.
+Try appending this optional extension to the pattern:
+(?:\s*(?:ext\.?|x)\s*\d{1,5})?
+An extension can change the matched span without changing occurrence count.
+Limitations: international formats, no separators, and obfuscated digits.
+
+10. CREDENTIAL REFERENCES
+\b(?:passwords?|logins?|usernames?)\b
+The optional s includes plurals. A warning about passwords also matches.
+Try adding passcode to the alternatives and explain possible missed matches.
+
+11. POSSIBLE CREDENTIAL DISCLOSURE CANDIDATES
+\b(?:password|login|username)\s*(?:is\b|:|=)\s*\S+
+Compare with 10. This adds a connector and a following non-whitespace token.
+It can capture password is the, not an actual secret. Placeholder values,
+instructions, and quoted text can match. Inspect surrounding text; do not
+infer disclosure or authorization from a highlighted span. Disclosures
+without these labels can be missed. Do not copy plausible real secrets.
+
+12. BROAD EMPLOYMENT LANGUAGE
+\b(?:interview\w*|recruit\w*|resume|job opportunit\w*|employment)\b
+\w* allows endings such as interviews or interviewing. A match can concern
+hiring someone else, a news interview, or unrelated quoted material.
+
+13. ILLUSTRATIVE COMPETITOR NAMES
+\b(?:Dynegy|Duke Energy|Reliant)\b
+These are editable teaching assumptions, NOT an authoritative competitor
+list. The original policy and list were not supplied. Literal spaces can
+miss changed spacing or artifacts; try Duke\s+Energy and compare.
+
+14. EMPLOYMENT AND AN ILLUSTRATIVE NAME IN ONE EMAIL
+(?is)\A(?=.*\b(?:interview\w*|recruit\w*|resume|job opportunit\w*|employment)\b)(?=.*\b(?:Dynegy|Duke Energy|Reliant)\b).+\Z
+Two positive lookaheads require both conditions anywhere in the input.
+This highlights the WHOLE record once, not each employment occurrence.
+In Python the notebook instead intersects the RecordIDs of two searches,
+retaining employment occurrence counts. Co-occurrence can span unrelated
+quoted messages. It does not establish an interview or policy violation.
+
+15. OPTIONAL QUOTED-THREAD DELIMITER
+(?i)-{2,}\s*Original Message\s*-{2,}|-{2,}\s*Forwarded by\b
+Find recognized delimiters. Text before the first match is only a heuristic
+and still includes the subject; it is not guaranteed newly authored text.
+Default notebook searches use the full EmailBody for comparability.
+
+16. OPTIONAL ATTACHMENT REFERENCE
+<<\s*File:.*?>>
+An attachment reference does not mean the CSV contains the attachment.
+We can search the reference text, not inspect attachment contents.
+
+17. OPTIONAL ENCODING-ARTIFACT SCREEN
+=09|=20|= 
+The final alternative is equals followed by a literal space. It can occur
+inside flattened split words. Do not blindly delete equals signs or decode
+all records as quoted-printable. Preserve originals and compare any optional
+cleaning experiment in a separate field.
+
+QUICK TOKEN REFERENCE
+\b           word boundary (zero width)
+\d / \s / \w digit / whitespace / word character
+.            any character except newline (unless dotall s is enabled)
+[^>]         one character other than >
+* / + / ?    zero or more / one or more / optional
+{3}          exactly three repetitions
+.*?          lazy repetition
+|            alternatives
+(?:...)      group without capturing
+(?P<Name>...) named capturing group (Python flavor)
+(?=...)      positive lookahead: require what follows, consume nothing
+(?<!\w)      negative lookbehind: preceding character cannot be a word char
+\A / \Z      beginning / end of the entire input
+(?i) / (?s)  ignore case / allow dot to include newline
+Escape literal punctuation: \. matches a dot; . alone is a wildcard.
+
+MOVING TO PYTHON
+Regex101: \bpassword\b
+Python:   pattern = r'\bpassword\b'
+The r prefix belongs to the Python string, not to the regex itself.
+Case handling in the notebook uses re.I; dotall uses re.S or (?s).
+The notebook search helper returns one row per matching email and counts
+non-overlapping occurrences within it. Review excerpts and distinguish
+screening evidence from a finding. Use EmailBody, not the full raw record,
+for policy searches. The synthetic text below is one record, not many.
+
+SYNTHETIC ONLINE-DEMO ALTERNATIVE (ALL VALUES INVENTED)
+Copy ONLY the next line into Test String. It intentionally contains outer
+and quoted metadata, a phone extension, an ambiguous credential reference,
+employment/name co-occurrence, an attachment reference, and artifacts.
+
+Message-ID: <demo-001@example.invalid> Date: Wed, 11 Jul 2001 08:25:40 -0700 (PDT) From: legal <.taylor@enron.com> To: learner@example.invalid Subject: Training example Office: (202) 555-0100 ext. 42. The password is the placeholder, not a live credential. Please recruit interviewers for a training session. Dynegy appears in an unrelated example. Risk=20review and pass= word are artifacts. << File: invented-training.txt >> -----Original Message----- Date: yesterday From: quoted@example.invalid To: other@example.invalid Subject: Quoted demonstration only.
+
+CHECK YOUR DEMO
+- Patterns 3–7 capture only outer fields; pattern 7 captures the display name.
+- Pattern 9 finds one phone; adding the extension changes its matched span.
+- Pattern 10 finds one password reference; pattern 11 can match password is
+  the, demonstrating why a candidate is not proof of a disclosed secret.
+- Pattern 14 matches the entire synthetic record once even though the name
+  and recruiting language do not establish an employee interview.
+- Pattern 15 finds the delimiter; pattern 16 finds only an attachment reference.
